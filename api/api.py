@@ -1,8 +1,9 @@
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import pipeline
 from typing import List, Union
-from transformers import pipeline
+
 # Skapa FastAPI-app
 app = FastAPI()
 
@@ -48,3 +49,9 @@ def analyze_text(input: TextInput):
         return results
     else:
         return {"error": "You must provide either 'text' or 'texts'."}
+
+# 🚀 Ensure the app binds to the correct port for Render
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))  # Default to 8000 locally
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=port)
