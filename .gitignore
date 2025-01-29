@@ -1,0 +1,13 @@
+# Ignore large datasets
+tokenized_datasets/
+results/
+sentiment_model/
+*.safetensors
+*.pt
+
+# Ignore virtual environment
+venv/
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
