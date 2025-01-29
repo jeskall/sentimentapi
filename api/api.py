@@ -52,6 +52,6 @@ def analyze_text(input: TextInput):
 
 # 🚀 Ensure the app binds to the correct port for Render
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))  # Default to 8000 locally
+    port = int(os.getenv("PORT", 10000))  # Default to 10000 locally
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=port)
