@@ -4,49 +4,70 @@ from pydantic import BaseModel
 from transformers import pipeline
 from typing import List, Union
 
-# Skapa FastAPI-app
+# Create FastAPI app
 app = FastAPI()
 
-# Ladda din tränade modell
+# Load the trained model from Hugging Face
 sentiment = pipeline("sentiment-analysis", model="jeskall/sentiment-model")
 
-# Modell för att hantera indata
+# Define input model
 class TextInput(BaseModel):
-    text: Union[str, None] = None  # För en text
-    texts: Union[List[str], None] = None  # För flera texter (batch)
+    text: Union[str, None] = None  # Single text input
+    texts: Union[List[str], None] = None  # Batch input
 
-# Root-endpoint (hälsa världen)
+# 🚀 Root Endpoint
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Sentiment Analysis API!"}
 
-# Endpoint för sentimentanalys
-@app.post("/analyze")
-def analyze_text(input: TextInput):
-    # Kontrollera om det är en enstaka text eller batch
-    if input.text:
-        # En text
-        result = sentiment(input.text)
-        label_map = {0: "NEGATIVE", 1: "POSITIVE"}
-        sentiment_label = label_map[int(result[0]["label"][-1])]
-        return {
-            "text": input.text,
+# ✅ API Health Check
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "message": "API is running!"}
+
+# 📌 Single Sentiment Analysis
+@app.post("/analyze/single")
+def analyze_single(input: TextInput):
+    if not input.text:
+        return {"error": "Please provide a valid 'text' field."}
+    
+    result = sentiment(input.text)
+    label_map = {"LABEL_0": "NEGATIVE", "LABEL_1": "POSITIVE"}  # Ensure labels match model
+    sentiment_label = label_map[result[0]["label"]]
+
+    return {
+        "text": input.text,
+        "sentiment": sentiment_label,
+        "confidence": result[0]["score"]
+    }
+
+# 📌 Batch Sentiment Analysis
+@app.post("/analyze/batch")
+def analyze_batch(input: TextInput):
+    if not input.texts or len(input.texts) == 0:
+        return {"error": "Please provide a valid 'texts' list."}
+    
+    results = []
+    for text in input.texts:
+        result = sentiment(text)
+        label_map = {"LABEL_0": "NEGATIVE", "LABEL_1": "POSITIVE"}  # Ensure labels match model
+        sentiment_label = label_map[result[0]["label"]]
+
+        results.append({
+            "text": text,
             "sentiment": sentiment_label,
             "confidence": result[0]["score"]
-        }
+        })
+
+    return results
+
+# 🌍 Unified Sentiment Analysis (Handles both single & batch)
+@app.post("/analyze")
+def analyze_text(input: TextInput):
+    if input.text:
+        return analyze_single(input)
     elif input.texts:
-        # Flera texter (batch)
-        results = []
-        for text in input.texts:
-            result = sentiment(text)
-            label_map = {0: "NEGATIVE", 1: "POSITIVE"}
-            sentiment_label = label_map[int(result[0]["label"][-1])]
-            results.append({
-                "text": text,
-                "sentiment": sentiment_label,
-                "confidence": result[0]["score"]
-            })
-        return results
+        return analyze_batch(input)
     else:
         return {"error": "You must provide either 'text' or 'texts'."}
 
