@@ -41,25 +41,24 @@ def analyze_single(input: TextInput):
         "confidence": result[0]["score"]
     }
 
-# 📌 Batch Sentiment Analysis
+# 📌 Optimized Batch Sentiment Analysis
 @app.post("/analyze/batch")
 def analyze_batch(input: TextInput):
     if not input.texts or len(input.texts) == 0:
         return {"error": "Please provide a valid 'texts' list."}
     
-    results = []
-    for text in input.texts:
-        result = sentiment(text)
-        label_map = {"LABEL_0": "NEGATIVE", "LABEL_1": "POSITIVE"}  # Ensure labels match model
-        sentiment_label = label_map[result[0]["label"]]
+    # Process all texts at once for speed improvement
+    batch_results = sentiment(input.texts)
+    label_map = {"LABEL_0": "NEGATIVE", "LABEL_1": "POSITIVE"}
 
-        results.append({
+    return [
+        {
             "text": text,
-            "sentiment": sentiment_label,
-            "confidence": result[0]["score"]
-        })
-
-    return results
+            "sentiment": label_map[result["label"]],
+            "confidence": result["score"]
+        }
+        for text, result in zip(input.texts, batch_results)
+    ]
 
 # 🌍 Unified Sentiment Analysis (Handles both single & batch)
 @app.post("/analyze")
