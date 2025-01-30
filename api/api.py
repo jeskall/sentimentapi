@@ -8,7 +8,7 @@ from typing import List, Union
 app = FastAPI()
 
 # Ladda din tränade modell
-sentiment = pipeline("sentiment-analysis", model="./sentiment_model")
+sentiment = pipeline("sentiment-analysis", model="jeskall/sentiment-model")
 
 # Modell för att hantera indata
 class TextInput(BaseModel):

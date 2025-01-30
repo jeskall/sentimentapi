@@ -1,7 +1,6 @@
 # Ignore large datasets
 tokenized_datasets/
 results/
-sentiment_model/
 *.safetensors
 *.pt
 
